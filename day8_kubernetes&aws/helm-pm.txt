@@ -1,0 +1,58 @@
+This scenario teaches you how to use Helm, the package manager for Kubernetes, to deploy Redis. Helm simplifies discovering and deploying services to a Kubernetes cluster.
+
+"Helm is the best way to find, share, and use software built for Kubernetes."
+More details can be found on their website at http://www.helm.sh/
+
+
+Install Helm
+Helm is a single binary that manages deploying Charts to Kubernetes. A chart is a packaged unit of kubernetes software. It can be downloaded from https://github.com/kubernetes/helm/releases
+
+curl -LO https://storage.googleapis.com/kubernetes-helm/helm-v2.8.2-linux-amd64.tar.gz
+tar -xvf helm-v2.8.2-linux-amd64.tar.gz
+mv linux-amd64/helm /usr/local/bin/
+
+Once installed, initialise update the local cache to sync the latest available packages with the environment.
+
+helm init --stable-repo-url https://charts.helm.sh/stable
+helm repo update
+
+Search For Chart
+You can now start deploying software. To find available charts you can use the search command.
+
+For example, to deploy Redis we need to find a Redis chart.
+
+helm search redis
+
+We can identify more information with the inspect command.
+
+helm inspect stable/redis
+
+
+Deploy Redis
+Use the install command to deploy the chart to your cluster.
+
+helm install stable/redis
+
+Helm will now launch the required pods. You can view all packages using helm ls
+
+If you receive an error that Helm could not find a ready tiller pod, it means that helm is still deploying. Wait a few moments for the tiller Docker Image to finish downloading.
+
+In the next step we'll verify the deployment status.
+
+
+See Results
+Helm deploys all the pods, replication controllers and services. Use kubectl to find out what was deployed.
+
+kubectl get all
+
+The pod will be in a pending state while the Docker Image is downloaded and until a Persistent Volume is available.
+
+kubectl apply -f pv.yaml
+
+Redis needs permissions to write chmod 777 -R /mnt/data*
+
+Once complete it will move into a running state. You'll now have a Redis Cluster running on top of Kubernetes.
+
+The helm could be provided with a more friendly name, such as:
+
+helm install --name my-release stable/redis

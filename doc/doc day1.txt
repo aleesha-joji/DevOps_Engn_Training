@@ -1,0 +1,33 @@
+create a new folder
+in that new folder creat a new text doc
+open the command promt from the new folder
+in the command promt......
+$ git config --global user.name "John Doe"
+$ git config --global user.email johndoe@example.com
+next git init
+git add (text file name).txt
+git commit -m "hint"
+git status
+now create a new tect doc
+git add (text file name).txt
+git commit -m "hint"
+git status
+
+now in github.com
+create a new deposition
+git init
+git add .
+git commit -m "Initial commit"
+git remote add origin https://github.com/aleesha-joji/Docker-cmds.git
+git push origin master
+
+next an authentication window will popup
+complete the authentication and refresh the github page 
+the two text docs will be pushed to the github 
+now add a new folder in the same folder (dont keep it empty)
+git init
+git add .
+git commit -m "Initial commit"
+git remote add origin youruser@yourserver.com:/path/to/my_project.git
+git push origin master
+

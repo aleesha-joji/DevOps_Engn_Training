@@ -1,0 +1,112 @@
+Deploying and using kubeless, the Kubernetes Native serverless framework.
+
+With Kubeless you can deploy functions without the need to build containers. These functions can be called via regular HTTP(S) calls or triggered by events submitted to message brokers like Kafka.
+
+Kubeless aims to be an open source FaaS solution to clone the functionalities of AWS Lamdba/Goole Cloud Functions.
+
+
+Step 1 - Install Kubeless
+Create a kubeless namespace where you will install the controller.
+
+kubectl create ns kubeless
+
+Install the latest stable version with a kubectl create command
+
+kubectl create -f https://github.com/kubeless/kubeless/releases/download/v1.0.0-alpha.8/kubeless-v1.0.0-alpha.8.yaml
+
+You can see that a few pods are being started in the kubeless namespace. The controller which will watch for function objects to be created and also two Pods to enabled PubSub function.
+
+kubectl get pods -n kubeless
+
+As soon as the controller starts you can deploy a function. In this getting started guide you do not need to wait for the other pods to start. HTTP triggered functions are available right away.
+
+Step 2 - Deploy a Python Function
+To deploy a function you use the kubeless CLI. You need to specify a runtime which specifies which language your function is in. You need to specify the file that contains your function, how the function will get triggered (here we use an HTTP trigger) and finally you specify the function name as a handler.
+
+kubeless function deploy toy --runtime python2.7 \
+                              --handler toy.handler \
+                              --from-file toy.py
+
+You can then list the function with the kubeless CLI:
+
+kubeless function ls
+
+While the function get deployed you can check the actual Python function:
+
+cat toy.py
+
+Under the hood, Kubeless automatically created a Kubernetes deployment and service. You can check that a Pod containing your function is running:
+
+kubectl get pods
+
+Step 3 - Call The Function
+You can call the function using the kubeless CLI convenience wrapper:
+
+kubeless function call toy --data '{"hello":"world"}'
+
+Or you can call the service endpoint if you have a proxy running.
+
+Let's run a proxy:
+
+kubectl proxy --port 8080 &
+
+And now let's call the function directly via curl:
+
+curl --data '{"hello":"world"}' localhost:8080/api/v1/namespaces/default/services/toy:8080/proxy/ --header "Content-Type:application/json"
+
+
+Step 4 - View The Logs, Describe and Update a Function
+You can get the logs of the function
+
+kubeless function logs toy
+
+As well as get the description of it
+
+kubeless function describe toy
+
+To update a function use the kubeless function update command. For example to replace the toy function with the method from the toy-udpate.py script, do:
+
+kubeless function update toy --from-file toy-update.py
+
+If you check the content of the new function you will see that it hard codes the JSON object being returned:
+
+cat toy-update.py
+
+Under the hood, Kubernetes will do a rolling update of the Pods making up your function. Once this is finished, you can call your function and see that the new function is now deployed.
+
+kubeless function call toy --data '{"hello":"world"}'
+
+
+Step 5 - Create a Node Function
+There are additional runtimes. In addition to Python 2.7 and 3.4 you can also deploy Ruby, Node and .Net core functions.
+
+Let's deploy a toy Node.js function.
+
+cat hello.js
+
+You can deploy this function like so:
+
+kubeless function deploy hello --runtime nodejs6 \
+                              --handler hello.handler \
+                              --from-file hello.js
+
+You can list it
+
+kubeless function ls
+
+And call it as well
+
+kubeless function call hello --data '{"kubeless":"rocks"}'
+
+Step 6 - Delete Function
+Once you are done you can remove the functions
+
+kubeless function delete toy
+
+and
+
+kubeless function delete hello
+
+The deployment and Kubernetes services will be removed automatically
+
+kubectl get deployments,services
